@@ -11,17 +11,75 @@ import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LeagerTest {
+public class LedgerTest {
 
     private BookKeeper bkClient;
 
-    private static final Logger logger = LoggerFactory.getLogger(LeagerTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(LedgerTest.class);
 
+
+    public static void main(String[] args) {
+        LedgerTest ledgerTest = new LedgerTest(args[0]);
+        int number = Integer.valueOf(args[1]);
+        // create a ledger
+        LedgerHandle ledgerHandle = ledgerTest.createLedgerSync("matt blog");
+        long ledgerId = ledgerHandle.getId();
+        // write 100 entries
+        int num = 100;
+        for (int i = 0; i < number; i++) {
+            ledgerTest.addEntry(ledgerHandle, i + " matt");
+        }
+        // close the ledger
+        try {
+            ledgerHandle.close();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (BKException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        // open the ledger
+        try {
+            ledgerHandle = ledgerTest.getBkClient()
+                .openLedger(ledgerId, BookKeeper.DigestType.MAC, "matt blog".getBytes());
+        } catch (BKException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        // read the entries
+        Enumeration<LedgerEntry> entries = ledgerTest.readEntry(ledgerHandle, 0, num - 1);
+        while (entries.hasMoreElements()) {
+            System.out.println("The entry: " + new String(entries.nextElement().getEntry()));
+        }
+        //close the ledger and the client
+        try {
+            ledgerHandle.close();
+            ledgerTest.getBkClient().close();
+        } catch (BKException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        System.out.println("LedgerTest run end.");
+    }
+
+    /**
+     * get the bkClient
+     */
+    public BookKeeper getBkClient() {
+        return bkClient;
+    }
 
     /**
      * init the BookKeeper client
      */
-    public LeagerTest(String zkAddr) {
+    public LedgerTest(String zkAddr) {
         try {
 //            /* first method */
 //            String connectionString = zkAddr; // For a single-node, local ZooKeeper cluster
@@ -41,7 +99,7 @@ public class LeagerTest {
     }
 
     /**
-     * create the ledger
+     * create the ledger, default ensemble size is 3, write quorum size is 2, ack quorum size is 2
      *
      * @param pw password
      * @return LedgerHandle
@@ -155,5 +213,21 @@ public class LeagerTest {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * delete the ledger
+     *
+     * @param ledgerId the ledger id
+     * @return if occur exception, return false
+     */
+    public boolean deleteLedger(long ledgerId) {
+        try {
+            bkClient.deleteLedger(ledgerId);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
