@@ -1,0 +1,116 @@
+/**
+* Author: matt
+*/
+
+options {
+    STATIC = false;
+}
+
+PARSER_BEGIN(Calculator)
+
+import java.io.*;
+
+public class Calculator {
+    public static void main(String[] args) throws ParseException, TokenMgrError, NumberFormatException {
+        Calculator calculator = new Calculator(System.in);
+        calculator.parse(System.out);
+    }
+
+    double previousValue = 0.0;
+}
+
+PARSER_END(Calculator)
+
+SKIP : {
+    " "
+}
+
+// define EOF
+TOKEN : {
+    < EOL : "\n" | "\r" | "\r\n">
+}
+
+TOKEN : {
+    < PLUS : "+" >
+|
+    < TIMES : "*" >
+|
+    < DIVIDE : "/" >
+|
+    < MINUS : "-" >
+|
+    < OPEN_PAR : "(" >
+|
+    < CLOSE_PAR : ")" >
+}
+
+TOKEN : {
+    < NUMBER : (["0"-"9"])+ | (["0"-"9"])+ "." (["0"-"9"])+ | (["0"-"9"])+ "." | "." (["0"-"9"])+ > // allow decimal points in number
+}
+
+void parse(PrintStream printStream) throws NumberFormatException :
+{}
+{
+    (
+        previousValue = expression()
+        <EOL>
+        { printStream.println(previousValue); }
+    )*
+    <EOF>
+}
+
+double expression() throws NumberFormatException :
+{
+    double i;
+    double value;
+}
+{
+    value = term()
+    (
+        <PLUS>
+        i = term()
+        { value += i; }
+    |
+        <MINUS>
+        i = term()
+        { value -= i; }
+    )*
+    { return value ; }
+
+}
+
+double term() throws NumberFormatException :
+{
+    double i;
+    double value;
+}
+{
+    value = primary()
+    (
+        <TIMES>
+        i = primary()
+        { value *= i; }
+    |
+        <DIVIDE>
+        i = primary()
+        { value /= i; }
+    )*
+    { return value; }
+}
+
+double primary() throws NumberFormatException :
+{
+    Token t;
+    double d;
+}
+{
+    t = <NUMBER>
+    { return Double.parseDouble( t.image ); }
+|
+    <OPEN_PAR> d=expression() <CLOSE_PAR>
+    { return d; }
+|
+    <MINUS> d=primary()
+    { return -d; }
+}
+
