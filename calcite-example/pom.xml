@@ -13,7 +13,7 @@
         <maven.compiler.target>8</maven.compiler.target>
         <calcite-core.version>1.18.0</calcite-core.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <hydromatic.version>6.0</hydromatic.version>
         <guava.version>19.0</guava.version>
     </properties>
