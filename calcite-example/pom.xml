@@ -11,7 +11,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <calcite-core.version>1.18.0</calcite-core.version>
+        <calcite-core.version>1.32.0</calcite-core.version>
         <slf4j.version>1.7.25</slf4j.version>
         <junit.version>4.13.1</junit.version>
         <hydromatic.version>6.0</hydromatic.version>
